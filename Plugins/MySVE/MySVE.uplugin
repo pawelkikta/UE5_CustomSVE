@@ -1,0 +1,18 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "MySVE",
+  "Description": "My Scene View Extension with Compute Shader",
+  "Category": "Rendering",
+  "Modules": [
+    {
+      "Name": "MySVE",
+      "Type": "Runtime",
+      "LoadingPhase": "PostConfigInit"
+    }
+  ],
+  "ShaderDirectories": [
+    "Shaders"
+  ]
+}

@@ -1,0 +1,17 @@
+#include "/Engine/Public/Platform.ush"
+
+RWTexture2D<float4> SceneColorOutput;
+
+int2 ViewSize;
+
+[numthreads(8, 8, 1)]
+void MainCS(uint3 ThreadId : SV_DispatchThreadID)
+{
+    // bounds check - nie wychodz poza ekran
+    if (ThreadId.x >= (uint) ViewSize.x || ThreadId.y >= (uint) ViewSize.y)
+    {
+        return;
+    }
+
+    SceneColorOutput[ThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
+}
