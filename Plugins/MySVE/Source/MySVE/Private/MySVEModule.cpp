@@ -2,23 +2,36 @@
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
 #include "MySVEExtension.h"
+#include "Misc/CoreDelegates.h"
 
 class FMySVEModule : public IModuleInterface
 {
 public:
-    TSharedPtr<FMySVEExtension> MySVEExtension;
+    TSharedPtr<FMySVEExtension, ESPMode::ThreadSafe> MySVEExtension;
 
     virtual void StartupModule() override
     {
-        // Zarejestruj folder shaderow
         FString PluginShaderDir = FPaths::Combine(
             IPluginManager::Get().FindPlugin(TEXT("MySVE"))->GetBaseDir(),
             TEXT("Shaders")
         );
+
         AddShaderSourceDirectoryMapping(TEXT("/Plugin/MySVE"), PluginShaderDir);
 
-        MySVEExtension = FSceneViewExtensions::NewExtension<FMySVEExtension>();
+        FCoreDelegates::OnPostEngineInit.AddRaw(
+            this,
+            &FMySVEModule::OnPostEngineInit
+        );
+
         UE_LOG(LogTemp, Warning, TEXT("MySVE: Module started!"));
+    }
+
+    void OnPostEngineInit()
+    {
+        UE_LOG(LogTemp, Warning, TEXT("MySVE: Creating extension"));
+
+        MySVEExtension =
+            FSceneViewExtensions::NewExtension<FMySVEExtension>();
     }
 
     virtual void ShutdownModule() override
