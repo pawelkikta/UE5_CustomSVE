@@ -97,7 +97,17 @@ AddShaderSourceDirectoryMapping(TEXT("/Plugin/MySVE"), PluginShaderDir);
 
 `ShaderDirectories` w `.uplugin` nie wystarcza w UE5 \- trzeba jawnie wywołać `AddShaderSourceDirectoryMapping`.
 
-**Problem: Edytor otwierał się poprawnie ale viewport był normalny \- brak czerwonego ekranu** Plugin ładował się, shadery kompilowały się, w Output Logu nie było żadnych błędów \- a efekt nie działał. Viewport wyglądał zupełnie normalnie jakby SVE w ogóle nie istniało.
+**Problem: Edytor otwierał się poprawnie ale viewport był normalny \- brak czerwonego ekranu** Plugin ładował się, shadery kompilowały się, a efekt nie działał. Viewport wyglądał zupełnie normalnie jakby SVE w ogóle nie istniało. W Output Logu był widoczny błąd na czerwono który wskazywał na przyczynę:
+
+LogOutputDevice: Error: Ensure condition failed: GEngine
+
+\[File: SceneViewExtension.cpp\] \[Line: 70\]
+
+UnrealEditor-MySVE.dll\!FMySVEModule::StartupModule()
+
+\[MySVEModule.cpp:20\]
+
+Ensure `GEngine` w `SceneViewExtension.cpp` linia 70 \- UE próbował zarejestrować extension ale `GEngine` jeszcze nie istniał w tym momencie inicjalizacji. Błąd był czytelny w logu, ale łatwo go przeoczyć bo edytor mimo wszystko ładował się dalej bez crashu.
 
 Przyczyna była subtelna: `FSceneViewExtensions::NewExtension<FMySVEExtension>()` było wywoływane w `StartupModule()` \- czyli w momencie gdy UE ładuje moduł pluginu. Problem w tym że w tej fazie `GEngine` i renderer nie są jeszcze w pełni zainicjalizowane. `NewExtension` wołało ensure na `GEngine`, extension "rejestrowało się" ale renderer UE jeszcze nie był gotowy do przyjmowania nowych SVE \- i po prostu je ignorował. Żadnego błędu, żadnego warning, cisza.
 
@@ -160,6 +170,6 @@ Praca z UE5 rendering pipeline z source buildem to seria problemów które są s
 
 **LoadingPhase ma ogromne znaczenie** \- rejestracja shaderów przez `IMPLEMENT_SHADER_TYPE` musi się odbyć w `PostConfigInit`, a tworzenie SVE musi czekać na `OnPostEngineInit`. Kolejność inicjalizacji w UE jest krytyczna.
 
-**IntelliSense vs kompilator** \- IntelliSense często myli się przy kodzie UE (czerwone podkreślenia mimo poprawnego kodu). Zawsze warto spróbować skompilować zanim zacznie debugować błędy IntelliSense.
+**IntelliSense vs kompilator** \- IntelliSense często myli się przy kodzie UE (czerwone podkreślenia mimo poprawnego kodu). Zawsze warto próbować skompilować zanim zacznie się debugować błędy IntelliSense.
 
-**RDG 101 to must-read** \- prezentacja o Render Dependency Graph (dostępna na mcro.de/c/rdg) to najlepsza dokumentacja jak działa nowoczesny pipeline renderowania w UE5. Mimo że niektóre przykłady są z UE4, koncepcje są aktualne.  
+**RDG 101 to must-read** \- prezentacja Epic'a o Render Dependency Graph (dostępna na mcro.de/c/rdg) to najlepsza dokumentacja jak działa nowoczesny pipeline renderowania w UE5. Mimo że niektóre przykłady są z UE4, koncepcje są aktualne.  
