@@ -6,22 +6,22 @@ Zaimplementować własny **SceneViewExtension (SVE)** w Unreal Engine 5.7 zbudow
 
 1. Wpina się w pipeline renderowania przez oficjalny hook `PrePostProcessPass_RenderThread`  
 2. Pobiera `SceneColor` jako UAV  
-3. Przepuszcza go przez własny **compute shader**  
+3. Przepuszcza go przez wlasny **compute shader**  
 4. Podmienia każdy piksel na kolor czerwony
 
 ---
 
 ## Krok 1 \- Budowanie UE5 ze źródeł
 
-### Co zrobiłem
+### Co zrobilem
 
-Sklonowałem repozytorium UE 5.7 release z GitHub i zbudowałem silnik z kodu źródłowego w Visual Studio 2022 (Development Editor).
+Sklonowałem repozytorium UE 5.7 release z GitHub i zbudowalem silnik z kodu źródłowego w Visual Studio 2022 (Development Editor).
 
 ### Napotkane problemy
 
 **Problem: Ogromny rozmiar downloadu (\~83GB)** Setup.bat pobiera pliki dla wszystkich platform z domyślnymi ustawieniami. **Rozwiązanie:** Użycie flag `--exclude` dla nieużywanych platform (Mac, Linux, Android, iOS itd.) oraz pliku `.gitdepsignore` do trwałego wykluczenia lokalizacji i nieużywanych binariów .NET. Rozmiar zredukowany do \~34GB. Dodatkowa optymalizacja: `git clone --depth=1` przy kolejnych klonach.
 
-**Problem: Błędy kompilacji modułów UbaCoordinatorHorde i SlateViewer** Moduły związane z distributed build system (Horde) i standalone UI viewer failowały z kodem 6\. **Rozwiązanie:** Zignorowane \- oba moduły są opcjonalne i niepotrzebne do pracy z SVE. Edytor skompilował się poprawnie bez nich.
+**Problem: Błędy kompilacji modułów UbaCoordinatorHorde i SlateViewer** Moduły związane z distributed build system (Horde) i standalone UI viewer failowały z kodem 6\. **Rozwiązanie:** Zignorowane \- oba moduly są opcjonalne i niepotrzebne do pracy z SVE. Edytor skompilował się poprawnie bez nich.
 
 **Problem: Brak pamięci RAM podczas kompilacji (C3859, C1076)** Kompilator kończył się pamięcią przy równoległej kompilacji wielu modułów. **Rozwiązanie:** Zamknięcie innych aplikacji, ograniczenie równoległości w VS (`Maximum parallel project builds = 2`).
 
@@ -31,7 +31,7 @@ Sklonowałem repozytorium UE 5.7 release z GitHub i zbudowałem silnik z kodu ź
 
 ### Co zrobiłem
 
-Stworzyłem nowy projekt C++ `SVE_Sandbox` w UE5 oraz plugin `MySVE` przez `Edit → Plugins → Add` (Blank Plugin template).
+Stworzyłem nowyprojekt C++ `SVE_Sandbox` w UE5 oraz plugin `MySVE` przez `Edit → Plugins → Add` (Blank Plugin template).
 
 ### Napotkane problemy
 
@@ -47,21 +47,21 @@ Stworzyłem nowy projekt C++ `SVE_Sandbox` w UE5 oraz plugin `MySVE` przez `Edit
 
 Napisałem trzy pliki:
 
-- `MySVEExtension.h/.cpp` \- klasa SVE dziedzicząca z `FSceneViewExtensionBase`  
+- `MySVEExtension.h/.cpp` \- klasa SVE dziedziczaca z `FSceneViewExtensionBase`  
 - `MySVEModule.cpp` \- moduł rejestrujący SVE  
 - `RedOverlay.usf` \- compute shader w HLSL malujący każdy piksel na czerwono
 
-Dodałem CVAR `MySVE.Enable` do włączania/wyłączania efektu z konsoli UE w runtime.
+Dodałem CVAR `MySVE.Enable` do włączania/wyłaczania efektu z konsoli UE w runtime.
 
 ### Napotkane problemy
 
-**Problem: `DECLARE_GLOBAL_SHADER` nie działa w pluginach** Błąd kompilacji \- makro działa tylko w kodzie silnika. **Rozwiązanie:** Zastąpiłem przez `DECLARE_SHADER_TYPE` i `IMPLEMENT_SHADER_TYPE` \- oficjalny sposób dla zewnętrznych pluginów opisany w dokumentacji RDG 101\.
+**Problem: `DECLARE_GLOBAL_SHADER` nie działa w pluginach** Bląd kompilacji \- makro dziala tylko w kodzie silnika. **Rozwiązanie:** Zastąpilem przez `DECLARE_SHADER_TYPE` i `IMPLEMENT_SHADER_TYPE` \- oficjalny sposób dla zewnętrznych pluginów opisany w dokumentacji RDG 101\.
 
-**Problem: `#include "PostProcess/PostProcessing.h"` \- No such file** Header prywatny w UE5, niedostępny publicznie. **Rozwiązanie:** Podmieniłem na `#include "PostProcess/PostProcessMaterialInputs.h"` \- znalazłem go przez podglądanie includeów w pluginach Epic'a (ColorCorrectRegions, CompositeCore).
+**Problem: `#include "PostProcess/PostProcessing.h"` \- No such file** Header prywatny w UE5, niedostępny publicznie. **Rozwiązanie:** Podmieniłem na `#include "PostProcess/PostProcessMaterialInputs.h"` \- znalazłem go przez podglądanie includeow w pluginach Epic'a (ColorCorrectRegions, CompositeCore).
 
-**Problem: `#include "SceneTextures.h"` \- No such file** `SceneTextures.h` przeniesiony do `Renderer\Internal\` w UE5.3+, niedostępny publicznie. **Rozwiązanie:** Zmieniłem podejście z `PreRenderViewFamily_RenderThread` na `PrePostProcessPass_RenderThread` \- oficjalny publiczny hook SVE który dostarcza SceneColor bezpośrednio przez `FPostProcessingInputs` bez potrzeby sięgania do prywatnych headerów.
+**Problem: `#include "SceneTextures.h"` \- No such file** `SceneTextures.h` przeniesiony do `Renderer\Internal\` w UE5.3+, niedostepny publicznie. **Rozwiązanie:** Zmieniłem podejscie z `PreRenderViewFamily_RenderThread` na `PrePostProcessPass_RenderThread` \- oficjalny publiczny hook SVE który dostarcza SceneColor bezpośrednio przez `FPostProcessingInputs` bez potrzeby sięgania do prywatnych headerów.
 
-**Problem: `FPostProcessingInputs` niezdefiniowany** Typ zdefiniowany w `PostProcessInputs.h` który siedzi w `Renderer\Internal\PostProcess\` \- znowu prywatny. **Rozwiązanie:** Dodałem do `Build.cs` ścieżki do prywatnych headerów Renderera:
+**Problem: `FPostProcessingInputs` niezdefiniowany** Typ zdefiniowany w `PostProcessInputs.h` ktory siedzi w `Renderer\Internal\PostProcess\` \- znowu prywatny. **Rozwiązanie:** Dodałem do `Build.cs` ścieżki do prywatnych headerów Renderera:
 
 PrivateIncludePathModuleNames.Add("Renderer");
 
@@ -71,7 +71,7 @@ PrivateIncludePaths.Add(Path.Combine(EnginePath, "Source/Runtime/Renderer/Intern
 
 Technicznie jest to "hack" \- Epic celowo schował te headery, ale nie zablokował dostępu przez ścieżki.
 
-**Problem: Podwójnie zdefiniowane konstruktory (C2535)** `SHADER_USE_PARAMETER_STRUCT` generuje konstruktory automatycznie, ręczne dodanie powoduje konflikt. **Rozwiązanie:** Usunąłem ręcznie napisane konstruktory z klasy shadera.
+**Problem: Podwojnie zdefiniowane konstruktory (C2535)** `SHADER_USE_PARAMETER_STRUCT` generuje konstruktory automatycznie, reczne dodanie powoduje konflikt. **Rozwiązanie:** Usunalem ręcznie napisane konstruktory z klasy shadera.
 
 ---
 
@@ -79,7 +79,7 @@ Technicznie jest to "hack" \- Epic celowo schował te headery, ale nie zablokowa
 
 ### Napotkane problemy i jak je rozwiązałem
 
-**Problem: Plugin 'MySVE' failed to load \- DLL nie mogła być załadowana** Edytor crashował przy ładowaniu pluginu. **Rozwiązanie:** Zmieniłem `LoadingPhase` w `.uplugin` z `PostEngineInit` na `PostConfigInit` \- shadery muszą być rejestrowane przez `IMPLEMENT_SHADER_TYPE` zanim engine zainicjalizuje system shaderów. Z `PostEngineInit` było za późno.
+**Problem: Plugin 'MySVE' failed to load \- DLL nie mogła być załadowana** Edytor crashował przy ładowaniu pluginu. **Rozwiązanie:** Zmienilem `LoadingPhase` w `.uplugin` z `PostEngineInit` na `PostConfigInit` \- shadery muszą byc rejestrowane przez `IMPLEMENT_SHADER_TYPE` zanim engine zainicjalizuje system shaderów. Z `PostEngineInit` było za późno.
 
 **Problem: Fatal error \- `Couldn't find source file of virtual shader path '/Plugin/MySVE/RedOverlay.usf'`** UE nie wiedział gdzie fizycznie szukać pliku `.usf` pomimo `ShaderDirectories` w `.uplugin`. **Rozwiązanie:** Ręcznie zarejestrowałem ścieżkę shadera w `StartupModule()`:
 
