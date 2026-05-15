@@ -23,7 +23,7 @@ public class MySVE : ModuleRules
             "Renderer"
         });
 
-        // dostep do Internal headerow Renderera
+        // dostep do Internal headerow Renderera - ok
         string EnginePath = Path.GetFullPath(Target.RelativeEnginePath);
         PrivateIncludePaths.Add(Path.Combine(EnginePath, "Source/Runtime/Renderer/Internal"));
         PrivateIncludePaths.Add(Path.Combine(EnginePath, "Source/Runtime/Renderer/Internal/PostProcess"));
