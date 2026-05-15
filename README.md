@@ -35,8 +35,6 @@ Stworzyłem nowy projekt C++ `SVE_Sandbox` w UE5 oraz plugin `MySVE` przez `Edit
 
 ### Napotkane problemy
 
-**Problem: Błąd parsowania .uplugin przy Generate Project Files** `Failed to generate project files` z błędem JSON. **Rozwiązanie:** Znalazłem literówkę w pliku `.uplugin` i poprawiłem JSON.
-
 **Problem: IntelliSense pokazywał czerwone błędy na wszystkich nagłówkach UE** E1696: `nie można otworzyć pliku źródło "SceneViewExtension.h"`. **Rozwiązanie:** Usunąłem foldery `.vs/`, `Binaries/`, `Intermediate/` z projektu i ponownie uruchomiłem Generate Project Files \- IntelliSense przebudował cache z pełną wiedzą o ścieżkach UE.
 
 **Problem: VSIT (Visual Studio Integration Tool) nie mógł dodać `.editorconfig`** Narzędzie failowało przy próbie automatycznego dodania pliku. **Rozwiązanie:** Ręcznie stworzyłem plik `.editorconfig` w folderze projektu z gotową zawartością konwencji nazewnictwa UE (`F` prefix dla struktur, `U` dla UObject, `A` dla Aktorów itd.).
@@ -162,7 +160,7 @@ Zbudowałem działający plugin SVE który:
 
 **"Czy to normalne?" \- TAK, absolutnie.**
 
-Praca z UE5 rendering pipeline z source buildem to seria problemów które są standardem w tej branży:
+Praca z UE5 rendering pipeline z source buildem to seria problemów które są po prostu standardem w tej branży:
 
 **Epic chowa coraz więcej headerów w `Internal/`** \- każda nowa wersja UE5 przenosi kolejne typy do prywatnych folderów. Trzeba szukać publicznych alternatyw albo sięgać po PrivateIncludePaths. Najlepszą metodą jest podglądanie jak Epic sam robi to w swoich pluginach (ColorCorrectRegions, CompositeCore).
 
@@ -172,4 +170,4 @@ Praca z UE5 rendering pipeline z source buildem to seria problemów które są s
 
 **IntelliSense vs kompilator** \- IntelliSense często myli się przy kodzie UE (czerwone podkreślenia mimo poprawnego kodu). Zawsze warto próbować skompilować zanim zacznie się debugować błędy IntelliSense.
 
-**RDG 101 to must-read** \- prezentacja Epic'a o Render Dependency Graph (dostępna na mcro.de/c/rdg) to najlepsza dokumentacja jak działa nowoczesny pipeline renderowania w UE5. Mimo że niektóre przykłady są z UE4, koncepcje są aktualne.  
+**RDG 101 to must-read** \- prezentacja o Render Dependency Graph (dostępna na mcro.de/c/rdg) to świetna dokumentacja jak działa nowoczesny pipeline renderowania w UE5. Mimo że niektóre przykłady są z UE4, koncepcje są aktualne.  
