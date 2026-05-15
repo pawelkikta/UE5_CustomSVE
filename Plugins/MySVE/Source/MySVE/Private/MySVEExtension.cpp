@@ -49,7 +49,7 @@ void FMySVEExtension::PrePostProcessPass_RenderThread(
         return;
     }
 
-    // SceneColor z Inputs
+    // SceneColor z Inputs!
     FRDGTextureRef SceneColorTexture = (*Inputs.SceneTextures)->SceneColorTexture;
 
     if (!SceneColorTexture)
@@ -59,7 +59,7 @@ void FMySVEExtension::PrePostProcessPass_RenderThread(
 
     FIntPoint ViewSize = View.UnscaledViewRect.Size();
 
-    // UAV z SceneColor
+    // UAV z SceneColor 
     FRDGTextureUAVRef SceneColorUAV = GraphBuilder.CreateUAV(SceneColorTexture);
 
     // parametry shadera
